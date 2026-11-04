@@ -75,6 +75,17 @@ export const createWebhookEndpointSchema = z.object({
   events: z.array(z.enum(WEBHOOK_EVENT_TYPES)).min(1),
 });
 
+export const createPickupSchema = z.object({
+  shipment_ids: z.array(z.string().startsWith('shp_')).min(1).max(50),
+  pickup_window: z.object({
+    start: z.number().int().positive(),
+    end: z.number().int().positive(),
+  }),
+  /** Defaults to the sender address of the first shipment */
+  address: addressSchema.optional(),
+  instructions: z.string().max(200).optional(),
+});
+
 export const shipmentStatusSchema = z
   .enum(['rated', 'purchased', 'in_transit', 'delivered', 'exception', 'returned', 'voided'])
   .optional();
@@ -83,3 +94,4 @@ export const orderStatusSchema = z.enum(['unfulfilled', 'partially_fulfilled', '
 
 export type CreateShipmentInput = z.infer<typeof createShipmentSchema>;
 export type CreateReturnInput = z.infer<typeof createReturnSchema>;
+export type CreatePickupInput = z.infer<typeof createPickupSchema>;

@@ -6,6 +6,7 @@ export const ups = simulatedCarrier({
   name: 'UPS',
   supports: isUSOrCanada,
   trackingNumber: () => `1Z${letters(3)}${digits(3)}03${digits(8)}`,
+  pickup: { feeCents: 750, confirmationPrefix: '2929' },
   services: [
     { name: 'Ground', baseCents: 985, centsPerOunce: 7, zoneFactor: 0.07, deliveryDays: z => (z <= 3 ? 2 : z <= 6 ? 4 : 5) },
     { name: '2nd Day Air', baseCents: 2240, centsPerOunce: 11, zoneFactor: 0.05, deliveryDays: () => 2 },

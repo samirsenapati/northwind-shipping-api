@@ -1,4 +1,4 @@
-import type { ApiKey, Event, Label, Order, Return, Shipment, Tracker, WebhookEndpoint } from '../models/types.js';
+import type { ApiKey, Event, Label, Order, Pickup, Return, Shipment, Tracker, WebhookEndpoint } from '../models/types.js';
 import { seedOrders } from './seed.js';
 
 // In-memory storage, so the API starts with one command and resets on restart. Each collection is a
@@ -9,6 +9,7 @@ export class MemoryStore {
   /** Keyed by tracking number, the identifier carriers and customers use */
   readonly trackers = new Map<string, Tracker>();
   readonly returns = new Map<string, Return>();
+  readonly pickups = new Map<string, Pickup>();
   readonly orders = new Map<string, Order>();
   readonly webhookEndpoints = new Map<string, WebhookEndpoint>();
   readonly events = new Map<string, Event>();

@@ -6,6 +6,7 @@ export const fedex = simulatedCarrier({
   name: 'FedEx',
   supports: isDomesticUS,
   trackingNumber: () => digits(12),
+  pickup: { feeCents: 500, confirmationPrefix: 'FX' },
   services: [
     { name: 'Ground', baseCents: 960, centsPerOunce: 7, zoneFactor: 0.07, deliveryDays: z => (z <= 3 ? 2 : z <= 6 ? 4 : 5) },
     { name: 'Express Saver', baseCents: 2075, centsPerOunce: 10, zoneFactor: 0.05, deliveryDays: () => 3 },

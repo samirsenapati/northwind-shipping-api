@@ -13,6 +13,7 @@ The REST API behind **Northwind**, shipping software for online stores. With it 
 - **Labels** as PDF or 4x6 ZPL; labels bought with a test key are free
 - **Voids** for unused labels within 30 days of purchase
 - **Tracking** with a full scan timeline, an estimated delivery date and delivery exceptions (`exception_code`)
+- **Scheduled pickups**: book a carrier driver to collect labelled parcels, and cancel until the window starts
 - **Returns** with a refund, store credit or an exchange, inside a 30-day window, with a prepaid return label
 - **Webhooks** signed with HMAC-SHA256 (`Northwind-Signature`) and retried with backoff for up to 3 days
 - **Idempotency keys** on every POST, cursor pagination and per-key rate limits
@@ -97,6 +98,24 @@ curl http://localhost:3000/v1/trackers/9405796630082449054095 \
 
 In test mode a simulator scans each parcel every 10 minutes (in transit, out for delivery, delivered), so you receive the same `tracking.updated` and `shipment.delivered` events as in live mode.
 
+### Schedule a pickup
+
+Book a driver to collect labelled parcels instead of dropping them off. All shipments in one pickup must use the same carrier and leave from the same address. The window is in Unix seconds, starts at least 2 hours from now and within 7 days, and lasts at least 2 hours.
+
+```bash
+curl http://localhost:3000/v1/pickups \
+  -H "Authorization: Bearer nw_test_localdevelopment01" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: pickup-2026-11-06" \
+  -d '{
+    "shipment_ids": ["shp_yQP9QuuGsr"],
+    "pickup_window": {"start": 1793973600, "end": 1793984400},
+    "instructions": "Side door, ring twice"
+  }'
+```
+
+The response includes the carrier's `confirmation` number and the `fee` (USPS pickups are free; UPS charges $7.50 and FedEx $5.00 per pickup; test pickups are always free). Cancel with `POST /v1/pickups/:id/cancel` any time before the window starts.
+
 ## Endpoints
 
 All paths are relative to `/v1`.
@@ -109,6 +128,9 @@ All paths are relative to `/v1`.
 | POST | `/shipments/:id/labels` | Buy the label for one of the shipment's rates |
 | POST | `/labels/:id/void` | Void an unused label for a refund |
 | GET | `/trackers/:tracking_number` | Tracking status, estimated delivery and scan history |
+| POST | `/pickups` | Book a carrier pickup for labelled shipments |
+| GET | `/pickups/:id` | Retrieve a pickup |
+| POST | `/pickups/:id/cancel` | Cancel a pickup before its window starts |
 | POST | `/returns` | Start a return with a refund, store credit or exchange |
 | GET | `/returns` | List returns |
 | GET | `/returns/:id` | Retrieve a return |
@@ -118,7 +140,7 @@ All paths are relative to `/v1`.
 | GET | `/webhook_endpoints` | List webhook endpoints |
 | DELETE | `/webhook_endpoints/:id` | Delete a webhook endpoint |
 
-Object IDs carry a prefix that says what they are: `shp_` shipment, `rate_` rate, `lbl_` label, `trk_` tracker, `ret_` return, `ord_` order, `we_` webhook endpoint, `evt_` event.
+Object IDs carry a prefix that says what they are: `shp_` shipment, `rate_` rate, `lbl_` label, `trk_` tracker, `pku_` pickup, `ret_` return, `ord_` order, `we_` webhook endpoint, `evt_` event.
 
 ## Errors
 
@@ -156,7 +178,7 @@ List endpoints return `{"object": "list", "data": [...], "has_more": true}`. Pas
 
 Register an endpoint with `POST /v1/webhook_endpoints` and keep the `secret` from the response. Events:
 
-`order.created`, `shipment.created`, `label.purchased`, `tracking.updated`, `shipment.delivered`, `shipment.exception`, `return.requested`, `return.received`, `return.refunded`
+`order.created`, `shipment.created`, `label.purchased`, `tracking.updated`, `shipment.delivered`, `shipment.exception`, `return.requested`, `return.received`, `return.refunded`, `pickup.scheduled`, `pickup.cancelled`
 
 Each delivery carries `Northwind-Signature: t=<timestamp>,v1=<signature>`, where the signature is the hex HMAC-SHA256 of `<timestamp>.<raw body>` keyed with the endpoint secret. Verify it against the raw bytes before parsing JSON, and reject timestamps more than 5 minutes old. `verifySignature` in [`src/services/webhooks.ts`](src/services/webhooks.ts) is a complete reference implementation.
 
@@ -184,8 +206,8 @@ src/
   server.ts            Entry point; starts the test-mode tracking simulator
   config.ts            Environment settings and their defaults
   context.ts           Store, clock and webhook dispatcher passed to every route
-  routes/              One router per resource (shipments, labels, trackers, returns, orders, webhook endpoints)
-  services/            Business rules: rating, labels, tracking, returns, webhooks, address checks
+  routes/              One router per resource (shipments, labels, trackers, pickups, returns, orders, webhook endpoints)
+  services/            Business rules: rating, labels, tracking, pickups, returns, webhooks, address checks
     carriers/          Carrier adapters (simulated USPS, UPS, FedEx, DHL Express)
   middleware/          Auth, rate limiting, idempotency, error responses
   validation/          Request schemas (zod)

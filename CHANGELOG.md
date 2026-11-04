@@ -2,6 +2,13 @@
 
 All notable changes to the Northwind API. The API follows semantic versioning; additive changes never break existing integrations.
 
+## [1.4.0] - 2026-11-05
+
+### Added
+
+- Scheduled pickups: `POST /v1/pickups` books a carrier driver to collect labelled shipments from one address, `GET /v1/pickups/:id` retrieves the booking and `POST /v1/pickups/:id/cancel` cancels it before the window starts. USPS and DHL Express pickups are free; UPS charges $7.50 and FedEx $5.00 per pickup.
+- `pickup.scheduled` and `pickup.cancelled` webhook events.
+
 ## [1.3.0] - 2026-10-14
 
 ### Added

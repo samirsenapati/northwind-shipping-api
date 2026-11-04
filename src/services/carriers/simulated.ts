@@ -18,10 +18,13 @@ export interface CarrierSpec {
   supports: (from: Address, to: Address) => boolean;
   trackingNumber: () => string;
   services: ServiceSpec[];
+  /** Scheduled pickups, when the carrier offers them */
+  pickup?: { feeCents: number; confirmationPrefix: string };
 }
 
 /** A carrier with a published rate card instead of a live API. */
 export function simulatedCarrier(spec: CarrierSpec): CarrierAdapter {
+  const { pickup } = spec;
   return {
     name: spec.name,
     supports: spec.supports,
@@ -51,6 +54,11 @@ export function simulatedCarrier(spec: CarrierSpec): CarrierAdapter {
       location: null,
       occurred_at: now,
     }),
+
+    schedulePickup: pickup
+      ? () => ({ confirmation: `${pickup.confirmationPrefix}${digits(9)}`, feeCents: pickup.feeCents })
+      : undefined,
+    cancelPickup: pickup ? () => true : undefined,
   };
 }
 

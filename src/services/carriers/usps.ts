@@ -8,6 +8,7 @@ export const usps = simulatedCarrier({
   name: 'USPS',
   supports: isDomesticUS,
   trackingNumber: () => `9405${digits(18)}`,
+  pickup: { feeCents: 0, confirmationPrefix: 'WTC' },
   services: [
     { name: 'Ground Advantage', baseCents: 455, centsPerOunce: 6, zoneFactor: 0.05, deliveryDays: z => (z <= 4 ? 3 : 5), maxOunces: SEVENTY_POUNDS },
     { name: 'Priority Mail', baseCents: 760, centsPerOunce: 8, zoneFactor: 0.06, deliveryDays: z => (z <= 4 ? 2 : 3), maxOunces: SEVENTY_POUNDS },
