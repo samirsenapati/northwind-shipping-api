@@ -1,6 +1,6 @@
 {
   "name": "northwind-shipping-api",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Northwind REST API: create shipments, compare carrier rates, buy labels, track parcels, manage returns and receive signed webhook events.",
   "private": true,
   "type": "module",

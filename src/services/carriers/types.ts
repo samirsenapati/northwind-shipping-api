@@ -22,4 +22,7 @@ export interface CarrierAdapter {
   /** Asks the carrier to cancel an unused label; false when the carrier refuses */
   void(trackingNumber: string): boolean;
   initialEvent(now: number): TrackingEvent;
+  /** Books a driver to collect labelled parcels; absent for carriers that only take drop-offs */
+  schedulePickup?(window: { start: number; end: number }): { confirmation: string; feeCents: number };
+  cancelPickup?(confirmation: string): boolean;
 }

@@ -10,6 +10,7 @@ export const ID_PREFIX = {
   order: 'ord',
   webhookEndpoint: 'we',
   event: 'evt',
+  pickup: 'pku',
 } as const;
 
 export type ObjectKind = keyof typeof ID_PREFIX;

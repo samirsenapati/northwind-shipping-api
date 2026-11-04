@@ -173,6 +173,8 @@ export const WEBHOOK_EVENT_TYPES = [
   'return.requested',
   'return.received',
   'return.refunded',
+  'pickup.scheduled',
+  'pickup.cancelled',
 ] as const;
 
 export type WebhookEventType = (typeof WEBHOOK_EVENT_TYPES)[number];
@@ -184,6 +186,23 @@ export interface WebhookEndpoint {
   events: WebhookEventType[];
   status: 'enabled' | 'disabled';
   secret: string;
+  created: number;
+}
+
+export interface Pickup {
+  id: string;
+  object: 'pickup';
+  status: 'scheduled' | 'cancelled' | 'completed';
+  carrier: string;
+  /** The carrier's own reference for the booking */
+  confirmation: string;
+  shipment_ids: string[];
+  address: Address;
+  /** Unix seconds; the driver arrives between start and end */
+  window: { start: number; end: number };
+  instructions: string | null;
+  fee: { amount: string; currency: string };
+  mode: Mode;
   created: number;
 }
 
